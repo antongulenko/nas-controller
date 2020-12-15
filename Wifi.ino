@@ -7,7 +7,7 @@ extern const char *wifiPassword;
 
 void connectWifi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(wifiSsid, wifiPassword);
   Serial.print(F("Connecting to Wifi "));
 
   // Wait for connection
@@ -18,7 +18,7 @@ void connectWifi() {
 
   Serial.println("");
   Serial.print(F("Connected to "));
-  Serial.println(ssid);
+  Serial.println(wifiSsid);
   Serial.print(F("IP address: "));
   Serial.println(WiFi.localIP());
 }
