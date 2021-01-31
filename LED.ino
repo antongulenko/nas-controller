@@ -6,15 +6,15 @@
 #define FAN2 2
 #define FAN3 3
 
-#define LED_1_R 33
-#define LED_1_G 25
-#define LED_1_B 32
-#define LED_2_R 27
-#define LED_2_G 14
+#define LED_1_R 23
+#define LED_1_G 19
+#define LED_1_B 12
+#define LED_2_R 14
+#define LED_2_G 27
 #define LED_2_B 26
-#define LED_3_R 34
-#define LED_3_G 35
-#define LED_3_B 12
+#define LED_3_R 25
+#define LED_3_G 33
+#define LED_3_B 32
 
 #define CHAN_1_R 0
 #define CHAN_1_G 1

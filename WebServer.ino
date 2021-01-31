@@ -73,7 +73,7 @@ static void handleStatus() {
   String ip = WiFi.localIP().toString();
   String powerState = isPoweredOn() ? "on" : "off";
   
-  char resp[512];
+  char resp[600];
   snprintf(resp, sizeof(resp), templateStatus,
     hr, min % 60, sec % 60,
     ip.c_str(), powerState, encoderCounter, getEncoderMovement(),
