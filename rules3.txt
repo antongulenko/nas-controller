@@ -1,0 +1,28 @@
+on power#on=1 do
+  asyncevent,animation_startup
+endon
+on ok#pressed=1 do
+  asyncevent,animation_startup
+endon
+on Wifi#Connected do
+  asyncevent,animation_startup
+endon
+
+on power#on=0 do
+  asyncevent,animation_shutdown
+endon
+on back#pressed=1 do
+  asyncevent,animation_shutdown
+endon
+
+on animation_startup do
+  // Power up: Start default animation
+  asyncevent,fan_animation=3,2000,0.005,0.05
+endon
+
+on animation_shutdown do
+  // Power down: Disable RGB
+  asyncevent,fan_animation=0,2000
+  asyncevent,fan_rgb_all=0,0,0
+endon
+

@@ -1,0 +1,63 @@
+on fan_animation do
+  TaskValueSet,7,1,%eventvalue1% // type
+  TaskValueSet,7,2,%eventvalue2% // timer
+  TaskValueSet,7,3,%eventvalue3% // step1
+  TaskValueSet,7,4,%eventvalue4% // step2
+  TaskValueSet,8,1,0
+  TaskValueSet,8,2,0
+  TaskValueSet,8,3,0
+  TaskValueSet,8,4,0
+  if [animation#type] > 0
+    timerSet_ms,1,[animation#timer]
+  endif
+endon
+
+on Rules#Timer=1 do
+  // Increment counters, wrap around to zero at 1.0
+  TaskValueSet,8,1,[state#counter1]+[animation#step1]
+  TaskValueSet,8,2,[state#counter2]+[animation#step2]
+  if [state#counter1] > 1
+    TaskValueSet,8,1,0
+  endif
+  if [state#counter2] > 1
+    TaskValueSet,8,2,0
+  endif
+
+  // Compute colors
+  if [animation#type]=1 or [animation#type]=2 or [animation#type]=3
+    if [animation#type]=2
+      Let,8,0.3 // Big offset in H
+    elseif [animation#type]=3
+      Let,8,0.085 // Small offset in H
+    else
+      Let,8,0 // No offset, same H
+    endif
+
+    Let,9,360*([state#counter1]+0*[var#8])
+    if [var#9] > 360
+      Let,9,[var#9]-360
+    endif
+    Let,10,360*([state#counter1]+1*[var#8])
+    if [var#10] > 360
+      Let,10,[var#10]-360
+    endif
+    Let,11,360*([state#counter1]+2*[var#8])
+    if [var#11] > 360
+      Let,11,[var#11]-360
+    endif
+    
+    Let,12,1-0.4*[state#counter2]
+    asyncevent,fan_hsv_diff=[var#9],[var#10],[var#11],[var#12]
+  endif
+
+  // Trigger next timer, if enabled
+  if [animation#type] > 0
+    timerSet_ms,1,[animation#timer]
+  else
+    TaskValueSet,8,1,0
+    TaskValueSet,8,2,0
+    TaskValueSet,8,3,0
+    TaskValueSet,8,4,0
+  endif
+endon
+

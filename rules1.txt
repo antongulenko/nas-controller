@@ -1,0 +1,71 @@
+on fan_rgb do
+  if %eventvalue1% = 1
+    PWM,23,%eventvalue2%
+    PWM,19,%eventvalue3%
+    PWM,12,%eventvalue4%
+  elseif %eventvalue1% = 2
+    PWM,14,%eventvalue2%
+    PWM,27,%eventvalue3%
+    PWM,26,%eventvalue4%
+  elseif %eventvalue1% = 3
+    PWM,25,%eventvalue2%
+    PWM,33,%eventvalue3%
+    PWM,32,%eventvalue4%
+  endif
+endon
+
+on fan_hsv do
+  Let,1,%eventvalue2%/60
+  Let,2,%eventvalue2%/60-[var#1#F]
+  Let,3,%eventvalue4%*(1-%eventvalue3%)
+  Let,4,%eventvalue4%*(1-%eventvalue3%*[var#2])
+  Let,5,%eventvalue4%*(1-%eventvalue3%*(1-[var#2]))
+
+  if [var#1#F]=0 or [var#1#F]=6
+    Let,6,%eventvalue4%*1023
+    Let,7,[var#5]*1023
+    Let,8,[var#3]*1023
+  elseif [var#1#F]=1
+    Let,6,[var#4]*1023
+    Let,7,%eventvalue4%*1023
+    Let,8,[var#3]*1023
+  elseif [var#1#F]=2
+    Let,6,[var#3]*1023
+    Let,7,%eventvalue4%*1023
+    Let,8,[var#5]*1023
+  elseif [var#1#F]=3
+    Let,6,[var#3]*1023
+    Let,7,[var#4]*1023
+    Let,8,%eventvalue4%*1023
+  elseif [var#1#F]=4
+    Let,6,[var#5]*1023
+    Let,7,[var#3]*1023
+    Let,8,%eventvalue4%*1023
+  elseif [var#1#F]=5
+    Let,6,%eventvalue4%*1023
+    Let,7,[var#3]*1023
+    Let,8,[var#4]*1023
+  else
+    logentry,"Wrong H: %eventvalue2%"
+  endif
+  event,fan_rgb=%eventvalue1%,[var#6],[var#7],[var#8]
+endon
+
+on fan_rgb_all do
+  event,fan_rgb=1,%eventvalue1%,%eventvalue2%,%eventvalue3%
+  event,fan_rgb=2,%eventvalue1%,%eventvalue2%,%eventvalue3%
+  event,fan_rgb=3,%eventvalue1%,%eventvalue2%,%eventvalue3%
+endon
+
+on fan_hsv_all do
+  event,fan_hsv=1,%eventvalue1%,%eventvalue2%,%eventvalue3%
+  event,fan_hsv=2,%eventvalue1%,%eventvalue2%,%eventvalue3%
+  event,fan_hsv=3,%eventvalue1%,%eventvalue2%,%eventvalue3%
+endon
+
+on fan_hsv_diff do
+  event,fan_hsv=1,%eventvalue1%,1,%eventvalue4%
+  event,fan_hsv=2,%eventvalue2%,1,%eventvalue4%
+  event,fan_hsv=3,%eventvalue3%,1,%eventvalue4%
+endon
+

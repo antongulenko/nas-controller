@@ -1,0 +1,62 @@
+I2C SCL 4
+I2C SDA 0
+
+onboard LED 22
+
+Rotary Encoder Rotate 5
+Rotary Encoder Dir 17
+Rotary Encoder Press 16
+Back Button 18
+
+LED_1_R 23
+LED_1_G 19
+LED_1_B 12
+LED_2_R 14
+LED_2_G 27
+LED_2_B 26
+LED_3_R 25
+LED_3_G 33
+LED_3_B 32
+
+power state in 2
+power button 15
+
+------- 
+
+0  SDA
+1  
+2  IN (Power State), SwitchMode 1, SwitchText1 "nas-power", Webbutton "NAS Power"
+3  
+4  SCL
+5  IN (Encoder Rotate)
+6  
+7  
+8  
+9  
+10 
+11 
+12 LED 1 B
+13 
+14 LED 2 R
+15 OUT (Power Button) Relay1, PulseTime1 3 (300ms), PowerOnState OFF
+16 BTN Encoder
+17 IN (Encoder Direction)
+18 BTN Back
+19 LED 1 G
+20 
+21 
+22 LED onboard
+23 LED 1 R
+24 
+25 LED 3 R
+26 LED 2 B
+27 LED 2 G
+28 
+29 
+30 
+31 
+32 LED 3 B
+33 LED 3 G
+34 
+35 
+
