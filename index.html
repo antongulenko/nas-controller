@@ -127,6 +127,19 @@
       background: linear-gradient(130deg, #25433f, #1c3033);
     }
 
+    .bookmark-invalid {
+      cursor: not-allowed;
+      opacity: .8;
+    }
+
+    .bookmark-invalid:hover {
+      transform: none;
+      border-color: #5a4946;
+      background: linear-gradient(130deg, #203538, #1a2b2f);
+    }
+
+    .bookmark-invalid .bookmark-host { color: var(--danger); }
+
     .bookmark-glyph {
       display: grid;
       width: 39px;
@@ -496,12 +509,25 @@
 
     function renderBookmarks(list, bookmarks) {
       for (const bookmark of bookmarks) {
-        const url = new URL(bookmark.url);
-        const link = document.createElement("a");
-        link.className = "bookmark";
-        link.href = url.href;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
+        let url = null;
+        try {
+          url = new URL(bookmark.url);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            throw new Error("Bookmark URL must use HTTP or HTTPS.");
+          }
+        } catch (error) {
+          console.error(`Invalid bookmark URL for "${bookmark.name}": ${error.message}`);
+        }
+
+        const link = document.createElement(url ? "a" : "div");
+        link.className = url ? "bookmark" : "bookmark bookmark-invalid";
+        if (url) {
+          link.href = url.href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+        } else {
+          link.setAttribute("aria-disabled", "true");
+        }
 
         const glyph = document.createElement("span");
         glyph.className = "bookmark-glyph";
@@ -518,7 +544,7 @@
         description.textContent = bookmark.description;
         const host = document.createElement("span");
         host.className = "bookmark-host";
-        host.textContent = url.host;
+        host.textContent = url ? url.host : `Invalid URL in APP_CONFIG: ${bookmark.url}`;
         copy.append(name, description, host);
 
         const arrow = document.createElement("span");
@@ -681,9 +707,9 @@
       refreshStatus();
     });
 
+    refreshStatus("Initial status check");
     renderBookmarks(publicBookmarkList, APP_CONFIG.bookmarks.public);
     renderBookmarks(localBookmarkList, APP_CONFIG.bookmarks.local);
-    refreshStatus("Initial status check");
   </script>
 </body>
 </html>
