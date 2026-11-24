@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101a22">
+  <meta name="theme-color" content="#101b1e">
   <title>NAS Console</title>
   <script>
     const APP_CONFIG = {
       apiBase: "/nas-controller-api",
       pollIntervalMs: 15000,
-      requestTimeoutMs: 10000,
+      requestTimeoutMs: 15000,
       bookmarks: {
         public: [
           { name: "Streaming", url: "https://stream.antongulenko.info", description: "Movies and Shows", glyph: "▶" },
@@ -37,14 +37,14 @@
     :root {
       color-scheme: dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #101a22;
-      color: #e8f0f3;
+      background: #101b1e;
+      color: #e7f0ef;
       font-synthesis: none;
       text-rendering: optimizeLegibility;
-      --panel: #18252e;
-      --line: #2b3c47;
-      --muted: #91a4af;
-      --accent: #61d5b2;
+      --panel: #19292d;
+      --line: #2e4447;
+      --muted: #95aaa9;
+      --accent: #63d5c7;
       --danger: #f18e88;
     }
 
@@ -56,8 +56,8 @@
       min-height: 100vh;
       margin: 0;
       background:
-        radial-gradient(ellipse at 8% 0%, #1c3b3d 0, transparent 33rem),
-        #101a22;
+        radial-gradient(ellipse at 8% 0%, #1d3d3f 0, transparent 33rem),
+        #101b1e;
     }
 
     button { color: inherit; font: inherit; }
@@ -75,7 +75,7 @@
     .panel {
       border: 1px solid var(--line);
       border-radius: 18px;
-      background: linear-gradient(145deg, #1a2832, #17232c);
+      background: linear-gradient(145deg, #1b2e32, #17282c);
       box-shadow: 0 18px 48px #07101533;
     }
 
@@ -114,17 +114,17 @@
       min-height: 82px;
       padding: 13px;
       overflow: hidden;
-      border: 1px solid #30434e;
+      border: 1px solid #30484a;
       border-radius: 13px;
-      background: linear-gradient(130deg, #1d3039, #18262f);
+      background: linear-gradient(130deg, #203538, #1a2b2f);
       text-decoration: none;
       transition: transform .16s ease, border-color .16s ease, background .16s ease;
     }
 
     .bookmark:hover {
       transform: translateY(-2px);
-      border-color: #4a756d;
-      background: linear-gradient(130deg, #234039, #1b3035);
+      border-color: #4b7971;
+      background: linear-gradient(130deg, #25433f, #1c3033);
     }
 
     .bookmark-glyph {
@@ -132,9 +132,9 @@
       width: 39px;
       height: 39px;
       place-items: center;
-      border: 1px solid #3c675d;
+      border: 1px solid #3d6c65;
       border-radius: 12px;
-      background: #203d39;
+      background: #21403d;
       color: var(--accent);
       font-size: 1.1rem;
     }
@@ -179,9 +179,9 @@
       min-height: 94px;
       margin-bottom: 18px;
       padding: 16px 17px;
-      border: 1px solid #314750;
+      border: 1px solid #345052;
       border-radius: 14px;
-      background: #14242b;
+      background: #17292d;
     }
 
     .state-light {
@@ -208,14 +208,14 @@
     .icon-button, .action-button {
       border: 1px solid var(--line);
       border-radius: 10px;
-      background: #22333d;
+      background: #24383b;
       cursor: pointer;
       transition: border-color .16s ease, background .16s ease, transform .16s ease;
     }
 
     .icon-button:hover, .action-button:hover:not(:disabled) {
-      border-color: #52716f;
-      background: #293d46;
+      border-color: #527c76;
+      background: #2a4143;
     }
 
     button:focus-visible, a:focus-visible {
@@ -260,13 +260,13 @@
       grid-column: 1 / -1;
       justify-content: flex-start;
       min-height: 66px;
-      border-color: #3a695f;
-      background: #1b3937;
+      border-color: #3c7067;
+      background: #1d3b39;
     }
 
     .power-button .action-icon { font-size: 1.42rem; }
     .button-copy { display: grid; gap: 3px; text-align: left; }
-    .button-copy small { color: #a9beb9; font-size: .72rem; font-weight: 500; }
+    .button-copy small { color: #aec4bf; font-size: .72rem; font-weight: 500; }
     .button-spinner { display: none; margin-left: auto; }
     .action-button.is-busy .button-spinner { display: inline-block; }
 
@@ -298,7 +298,7 @@
       padding: 0;
       overflow: auto;
       list-style: none;
-      scrollbar-color: #435b64 transparent;
+      scrollbar-color: #456261 transparent;
     }
 
     .activity-empty {
@@ -315,7 +315,7 @@
       grid-template-columns: 24px minmax(0, 1fr);
       gap: 10px;
       padding: 12px 0;
-      border-bottom: 1px solid #293943;
+      border-bottom: 1px solid #2c4144;
     }
 
     .activity-item:last-child { border-bottom: 0; }
@@ -326,7 +326,7 @@
       height: 21px;
       place-items: center;
       border-radius: 50%;
-      background: #263941;
+      background: #263e40;
       color: var(--muted);
       font-size: .74rem;
       font-weight: 800;
