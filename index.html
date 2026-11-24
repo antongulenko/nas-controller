@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a22">
+  <title>NAS Console</title>
+  <script>
+    const APP_CONFIG = {
+      apiBase: "/nas-controller-api",
+      pollIntervalMs: 15000,
+      requestTimeoutMs: 10000,
+      bookmarks: {
+        public: [
+          { name: "Streaming", url: "https://stream.antongulenko.info", description: "Movies and Shows", glyph: "▶" },
+          { name: "Nextcloud", url: "https://nextcloud.antongulenko.info", description: "Storage", glyph: "☁" },
+          { name: "Photos", url: "https://photos.antongulenko.info", description: "Photos", glyph: "▧" },
+          { name: "Chatbot", url: "https://ai.antongulenko.info", description: "AI Chatbot", glyph: "✦" },
+        ],
+        local: [
+          { name: "Router", url: "http://router.home", description: "FritzBox", glyph: "⌁" },
+          { name: "WIFI Extender", url: "http://asus.home", description: "ASUS ZenWiFi AX", glyph: "⌁" },
+          { name: "Wifi to LAN", url: "http://brostrend.home", description: "WIFI to LAN Extender", glyph: "⇄" },
+          { name: "Printer", url: "http://epson.home", description: "Printer EPSON ET-3950", glyph: "▤" },
+          { name: "Denon Receiver", url: "http://denon.home", description: "Audio device Denon AVR-X1200W", glyph: "♫" },
+          { name: "Chromecast", url: "http://chromecast.home", description: "Streaming device", glyph: "▣" },
+          { name: "NAS Controller", url: "http://nas-controller.home", description: "NAS management", glyph: "⚙" },
+          { name: "Streaming", url: "http://ai.home:8096", description: "Movies and Shows", glyph: "▶" },
+          { name: "Nextcloud", url: "http://ai.home:8080", description: "Storage", glyph: "▶" },
+          { name: "Photos", url: "http://ai.home:TODO", description: "Photos", glyph: "▶" },
+          { name: "Chatbot", url: "http://ai.home:80", description: "AI Chatbot", glyph: "▶" },
+        ]
+      }
+    };
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #101a22;
+      color: #e8f0f3;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --panel: #18252e;
+      --line: #2b3c47;
+      --muted: #91a4af;
+      --accent: #61d5b2;
+      --danger: #f18e88;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 8% 0%, #1c3b3d 0, transparent 33rem),
+        #101a22;
+    }
+
+    button { color: inherit; font: inherit; }
+    a { color: inherit; }
+
+    .shell {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 26px 0 48px;
+    }
+
+    h1, h2, p { margin: 0; }
+    h2 { font-size: 1.05rem; letter-spacing: -.015em; }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(145deg, #1a2832, #17232c);
+      box-shadow: 0 18px 48px #07101533;
+    }
+
+    .panel-inner { padding: 21px; }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 17px;
+    }
+
+    .section-heading p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: .81rem;
+      line-height: 1.45;
+    }
+
+    .bookmark-panel { margin-bottom: 12px; }
+    .local-bookmark-panel { margin-bottom: 20px; }
+
+    .bookmark-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+      gap: 11px;
+    }
+
+    .bookmark {
+      position: relative;
+      display: grid;
+      grid-template-columns: 39px minmax(0, 1fr) 18px;
+      align-items: center;
+      gap: 12px;
+      min-height: 82px;
+      padding: 13px;
+      overflow: hidden;
+      border: 1px solid #30434e;
+      border-radius: 13px;
+      background: linear-gradient(130deg, #1d3039, #18262f);
+      text-decoration: none;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .bookmark:hover {
+      transform: translateY(-2px);
+      border-color: #4a756d;
+      background: linear-gradient(130deg, #234039, #1b3035);
+    }
+
+    .bookmark-glyph {
+      display: grid;
+      width: 39px;
+      height: 39px;
+      place-items: center;
+      border: 1px solid #3c675d;
+      border-radius: 12px;
+      background: #203d39;
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+
+    .bookmark-copy { min-width: 0; }
+    .bookmark-name {
+      display: block;
+      overflow: hidden;
+      font-size: .84rem;
+      font-weight: 720;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bookmark-description, .bookmark-host {
+      display: block;
+      margin-top: 4px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: .7rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bookmark-arrow {
+      align-self: start;
+      color: #8cb8ad;
+      font-size: .9rem;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(310px, .75fr);
+      align-items: start;
+      gap: 20px;
+    }
+
+    .power-status {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-height: 94px;
+      margin-bottom: 18px;
+      padding: 16px 17px;
+      border: 1px solid #314750;
+      border-radius: 14px;
+      background: #14242b;
+    }
+
+    .state-light {
+      flex: 0 0 auto;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #83939a;
+      box-shadow: 0 0 0 6px #83939a18;
+    }
+
+    .state-light.on {
+      background: var(--accent);
+      box-shadow: 0 0 0 6px #61d5b21d, 0 0 17px #61d5b288;
+    }
+
+    .state-light.off { background: #82939b; box-shadow: 0 0 0 6px #82939b1c; }
+    .state-light.error { background: var(--danger); box-shadow: 0 0 0 6px #f18e881c; }
+    .state-copy { min-width: 0; flex: 1; }
+    .state-label { color: var(--muted); font-size: .76rem; }
+    .state-value { margin-top: 2px; font-size: 1.27rem; font-weight: 720; }
+    .state-updated { margin-top: 4px; color: var(--muted); font-size: .72rem; }
+
+    .icon-button, .action-button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #22333d;
+      cursor: pointer;
+      transition: border-color .16s ease, background .16s ease, transform .16s ease;
+    }
+
+    .icon-button:hover, .action-button:hover:not(:disabled) {
+      border-color: #52716f;
+      background: #293d46;
+    }
+
+    button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    button:disabled { cursor: wait; opacity: .76; }
+
+    .refresh-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 39px;
+      padding: 0 12px;
+      font-size: .8rem;
+      font-weight: 650;
+    }
+
+    .refresh-mark { color: var(--accent); font-size: 1.05rem; }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+    }
+
+    .action-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 55px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+    .action-icon { color: var(--accent); font-size: 1.18rem; }
+
+    .power-button {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+      min-height: 66px;
+      border-color: #3a695f;
+      background: #1b3937;
+    }
+
+    .power-button .action-icon { font-size: 1.42rem; }
+    .button-copy { display: grid; gap: 3px; text-align: left; }
+    .button-copy small { color: #a9beb9; font-size: .72rem; font-weight: 500; }
+    .button-spinner { display: none; margin-left: auto; }
+    .action-button.is-busy .button-spinner { display: inline-block; }
+
+    .spinner {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border: 2px solid #ffffff36;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+
+    .action-button:not(.is-busy) .button-spinner { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .poll-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .73rem;
+      line-height: 1.45;
+    }
+
+    .activity-list {
+      display: grid;
+      gap: 1px;
+      max-height: 420px;
+      margin: 0;
+      padding: 0;
+      overflow: auto;
+      list-style: none;
+      scrollbar-color: #435b64 transparent;
+    }
+
+    .activity-empty {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 0;
+      color: var(--muted);
+      font-size: .83rem;
+    }
+
+    .activity-item {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #293943;
+    }
+
+    .activity-item:last-child { border-bottom: 0; }
+
+    .activity-icon {
+      display: grid;
+      width: 21px;
+      height: 21px;
+      place-items: center;
+      border-radius: 50%;
+      background: #263941;
+      color: var(--muted);
+      font-size: .74rem;
+      font-weight: 800;
+    }
+
+    .activity-item.success .activity-icon { background: #1c433c; color: var(--accent); }
+    .activity-item.failure .activity-icon { background: #492d30; color: var(--danger); }
+    .activity-icon .spinner { width: 14px; height: 14px; border-width: 1.5px; }
+    .activity-title { font-size: .82rem; font-weight: 650; }
+
+    .activity-meta, .activity-result {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .71rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .activity-result { color: #c3d1d6; }
+    .activity-item.failure .activity-result { color: #f2aaa5; }
+
+    @media (max-width: 780px) {
+      .shell { width: min(100% - 28px, 620px); padding-top: 20px; }
+      .dashboard { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 460px) {
+      .shell { width: calc(100% - 22px); }
+      .panel-inner { padding: 17px; }
+      .section-heading { align-items: flex-start; }
+      .power-status { gap: 11px; padding: 14px; }
+      .refresh-button { padding: 0 9px; }
+      .bookmark-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="panel bookmark-panel" aria-labelledby="public-bookmarks-title">
+      <div class="panel-inner">
+        <div class="section-heading">
+          <div>
+            <h2 id="public-bookmarks-title">Public</h2>
+          </div>
+        </div>
+        <div id="public-bookmark-list" class="bookmark-grid"></div>
+      </div>
+    </section>
+
+    <section class="panel bookmark-panel local-bookmark-panel" aria-labelledby="local-bookmarks-title">
+      <div class="panel-inner">
+        <div class="section-heading">
+          <div>
+            <h2 id="local-bookmarks-title">Local</h2>
+          </div>
+        </div>
+        <div id="local-bookmark-list" class="bookmark-grid"></div>
+      </div>
+    </section>
+
+    <main class="dashboard">
+      <section class="panel" aria-labelledby="controller-title">
+        <div class="panel-inner">
+          <div class="section-heading">
+            <div>
+              <h2 id="controller-title">NAS controls</h2>
+            </div>
+          </div>
+
+          <div class="power-status" aria-live="polite">
+            <span id="state-light" class="state-light" aria-hidden="true"></span>
+            <div class="state-copy">
+              <div class="state-label">NAS power state</div>
+              <div id="state-value" class="state-value">Not checked</div>
+              <div id="state-updated" class="state-updated">Checking controller…</div>
+            </div>
+            <button id="refresh-button" class="icon-button refresh-button" type="button" aria-label="Refresh NAS power status">
+              <span class="refresh-mark" aria-hidden="true">↻</span>
+              <span>Refresh</span>
+              <span id="refresh-spinner" class="spinner" aria-hidden="true" hidden></span>
+            </button>
+          </div>
+
+          <div class="action-grid" aria-label="NAS button controls">
+            <button class="action-button" type="button" data-action="back" aria-label="Press Back button">
+              <span class="action-icon" aria-hidden="true">←</span>
+              <span class="button-copy"><span>Back</span></span>
+              <span class="button-spinner spinner" aria-hidden="true"></span>
+            </button>
+            <button class="action-button" type="button" data-action="ok" aria-label="Press OK button">
+              <span class="action-icon" aria-hidden="true">●</span>
+              <span class="button-copy"><span>OK</span></span>
+              <span class="button-spinner spinner" aria-hidden="true"></span>
+            </button>
+            <button class="action-button power-button" type="button" data-action="power" aria-label="Press NAS power button; this toggles the NAS">
+              <span class="action-icon" aria-hidden="true">⏻</span>
+              <span class="button-copy">
+                <span>Power button</span>
+                <small>Sends a 400 ms pulse · toggles NAS power</small>
+              </span>
+              <span class="button-spinner spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+          <p id="poll-note" class="poll-note">Status is checked once on load. Polling continues every 15 seconds after your first interaction.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="activity-title">
+        <div class="panel-inner">
+          <div class="section-heading">
+            <div>
+              <h2 id="activity-title">API activity</h2>
+            </div>
+          </div>
+          <ol id="activity-list" class="activity-list" aria-live="polite" aria-relevant="additions text">
+            <li id="activity-empty" class="activity-empty">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Starting power-state check…</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    "use strict";
+
+    const POLL_INTERVAL_MS = APP_CONFIG.pollIntervalMs;
+    const REQUEST_TIMEOUT_MS = APP_CONFIG.requestTimeoutMs;
+    const commands = {
+      power: "Pulse,15,1,400",
+      back: "event,back#pressed=1",
+      ok: "event,ok#pressed=1"
+    };
+
+    const publicBookmarkList = document.querySelector("#public-bookmark-list");
+    const localBookmarkList = document.querySelector("#local-bookmark-list");
+    const activityList = document.querySelector("#activity-list");
+    const activityEmpty = document.querySelector("#activity-empty");
+    const refreshButton = document.querySelector("#refresh-button");
+    const refreshSpinner = document.querySelector("#refresh-spinner");
+    const stateLight = document.querySelector("#state-light");
+    const stateValue = document.querySelector("#state-value");
+    const stateUpdated = document.querySelector("#state-updated");
+    const pollNote = document.querySelector("#poll-note");
+
+    let statusRequestActive = false;
+    let queuedStatusCheck = null;
+    let monitoringStarted = false;
+    let lastKnownPowerState = null;
+
+    function apiUrl(endpoint) {
+      const base = APP_CONFIG.apiBase.replace(/\/+$/, "");
+      return new URL(`${base}/${endpoint}`, window.location.origin);
+    }
+
+    function apiPath(endpoint, command) {
+      const base = String(APP_CONFIG.apiBase || "").replace(/\/+$/, "");
+      const path = `${base}/${endpoint}`;
+      return command ? `${path}?cmd=${encodeURIComponent(command)}` : path;
+    }
+
+    function renderBookmarks(list, bookmarks) {
+      for (const bookmark of bookmarks) {
+        const url = new URL(bookmark.url);
+        const link = document.createElement("a");
+        link.className = "bookmark";
+        link.href = url.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+
+        const glyph = document.createElement("span");
+        glyph.className = "bookmark-glyph";
+        glyph.setAttribute("aria-hidden", "true");
+        glyph.textContent = bookmark.glyph;
+
+        const copy = document.createElement("span");
+        copy.className = "bookmark-copy";
+        const name = document.createElement("span");
+        name.className = "bookmark-name";
+        name.textContent = bookmark.name;
+        const description = document.createElement("span");
+        description.className = "bookmark-description";
+        description.textContent = bookmark.description;
+        const host = document.createElement("span");
+        host.className = "bookmark-host";
+        host.textContent = url.host;
+        copy.append(name, description, host);
+
+        const arrow = document.createElement("span");
+        arrow.className = "bookmark-arrow";
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "↗";
+        link.append(glyph, copy, arrow);
+        list.append(link);
+      }
+    }
+
+    function addActivity(label, endpoint) {
+      if (activityEmpty.isConnected) activityEmpty.remove();
+      const item = document.createElement("li");
+      item.className = "activity-item pending";
+      const icon = document.createElement("span");
+      icon.className = "activity-icon";
+      icon.setAttribute("aria-hidden", "true");
+      const spinner = document.createElement("span");
+      spinner.className = "spinner";
+      icon.append(spinner);
+
+      const content = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "activity-title";
+      title.textContent = label;
+      const meta = document.createElement("div");
+      meta.className = "activity-meta";
+      meta.textContent = `${new Date().toLocaleTimeString()} · ${endpoint} · In progress`;
+      const result = document.createElement("div");
+      result.className = "activity-result";
+      result.textContent = "Waiting for the controller…";
+      content.append(title, meta, result);
+      item.append(icon, content);
+      activityList.prepend(item);
+      return { item, icon, meta, result };
+    }
+
+    function finishActivity(activity, succeeded, message) {
+      activity.item.classList.remove("pending");
+      activity.item.classList.add(succeeded ? "success" : "failure");
+      activity.icon.textContent = succeeded ? "✓" : "!";
+      const endpoint = activity.meta.textContent.split(" · ").slice(1, 2)[0];
+      activity.meta.textContent = `${new Date().toLocaleTimeString()} · ${endpoint} · ${succeeded ? "Complete" : "Failed"}`;
+      activity.result.textContent = message;
+    }
+
+    async function requestApi(label, endpoint, readResponse, command) {
+      const activity = addActivity(label, apiPath(endpoint, command));
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      try {
+        const url = apiUrl(endpoint);
+        if (command) url.searchParams.set("cmd", command);
+        const response = await fetch(url, {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal
+        });
+        if (!response.ok) throw new Error(`Controller returned HTTP ${response.status}.`);
+        const result = await readResponse(response);
+        finishActivity(activity, true, result.message);
+        return result.value;
+      } catch (error) {
+        const message = error.name === "AbortError"
+          ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000} seconds.`
+          : error.message || "Network request failed.";
+        finishActivity(activity, false, message);
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    function parsePowerState(payload) {
+      const tasks = (payload.Sensors || []).filter((task) => task.TaskName === "power");
+      if (tasks.length !== 1 || !Array.isArray(tasks[0].TaskValues) || tasks[0].TaskValues.length === 0) {
+        throw new Error('Expected one "power" task with at least one value.');
+      }
+      const value = tasks[0].TaskValues[0].Value;
+      if (value === 1 || value === "1") return "on";
+      if (value === 0 || value === "0") return "off";
+      throw new Error(`Unexpected NAS power value: ${String(value)}`);
+    }
+
+    function updatePowerState(state) {
+      lastKnownPowerState = state;
+      stateValue.textContent = state === "on" ? "Online" : "Off";
+      stateLight.className = `state-light ${state}`;
+      stateUpdated.textContent = `Last checked ${new Date().toLocaleTimeString()}`;
+    }
+
+    function startStatusMonitoring() {
+      if (monitoringStarted) return;
+      monitoringStarted = true;
+      window.setInterval(() => refreshStatus("Scheduled status poll"), POLL_INTERVAL_MS);
+      pollNote.textContent = "Status is checked automatically every 15 seconds. Use Refresh to check immediately.";
+    }
+
+    async function refreshStatus(label = "Manual status refresh", queueIfBusy = false) {
+      if (statusRequestActive) {
+        if (queueIfBusy) queuedStatusCheck = label;
+        return;
+      }
+      statusRequestActive = true;
+      refreshButton.disabled = true;
+      refreshSpinner.hidden = false;
+      try {
+        const state = await requestApi(label, "json", async (response) => {
+          const payload = await response.json();
+          const power = parsePowerState(payload);
+          return { value: power, message: `NAS is ${power}.` };
+        });
+        updatePowerState(state);
+      } catch (error) {
+        stateValue.textContent = "Unavailable";
+        stateLight.className = "state-light error";
+        stateUpdated.textContent = lastKnownPowerState
+          ? `Last known state was ${lastKnownPowerState}; refresh failed`
+          : "Could not read status";
+      } finally {
+        statusRequestActive = false;
+        refreshButton.disabled = false;
+        refreshSpinner.hidden = true;
+        const queuedLabel = queuedStatusCheck;
+        queuedStatusCheck = null;
+        if (queuedLabel) queueMicrotask(() => refreshStatus(queuedLabel));
+      }
+    }
+
+    async function runAction(action, button) {
+      if (button.disabled) return;
+      startStatusMonitoring();
+      button.disabled = true;
+      button.classList.add("is-busy");
+      try {
+        await requestApi(`Press ${action === "power" ? "Power" : action.toUpperCase()} button`, "control", async (response) => {
+          const body = (await response.text()).trim();
+          return { value: body, message: body ? `HTTP ${response.status} · ${body.slice(0, 120)}` : `HTTP ${response.status} · Command accepted.` };
+        }, commands[action]);
+      } catch (error) {
+        console.error("NAS button request failed; see API activity for details.", error);
+      } finally {
+        button.disabled = false;
+        button.classList.remove("is-busy");
+        refreshStatus("Status check after button press", true);
+      }
+    }
+
+    document.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", () => runAction(button.dataset.action, button));
+    });
+
+    refreshButton.addEventListener("click", () => {
+      startStatusMonitoring();
+      refreshStatus();
+    });
+
+    renderBookmarks(publicBookmarkList, APP_CONFIG.bookmarks.public);
+    renderBookmarks(localBookmarkList, APP_CONFIG.bookmarks.local);
+    refreshStatus("Initial status check");
+  </script>
+</body>
+</html>

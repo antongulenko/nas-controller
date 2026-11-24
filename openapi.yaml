@@ -1,0 +1,114 @@
+openapi: 3.1.0
+info:
+  title: ESP Easy NAS Controller API
+  version: 1.0.0
+  description: |
+    HTTP API for controlling the NAS power relay and triggering the Back and OK
+    rule events on the ESP Easy Mega controller.
+
+    Set the `host` server variable to the controller's hostname or IP address.
+    The NAS power state is reported by the ESP Easy task named `power`.
+servers:
+  - url: http://{host}
+    description: ESP Easy controller (replace the default host as needed)
+    variables:
+      host:
+        default: nas-controller
+        description: Controller hostname or IP address
+paths:
+  /control:
+    get:
+      operationId: executeControllerCommand
+      summary: Execute a controller action
+      description: |
+        Runs one of the supported ESP Easy commands. The Back and OK commands
+        raise the same rule events as the physical buttons. The `#` character
+        in those event names must be URL-encoded by the HTTP client.
+      parameters:
+        - name: cmd
+          in: query
+          required: true
+          description: ESP Easy command to execute.
+          schema:
+            type: string
+            enum:
+              - "Pulse,15,1,400"
+              - "event,back#pressed=1"
+              - "event,ok#pressed=1"
+          examples:
+            power:
+              summary: Press the NAS power button for 400 ms
+              value: "Pulse,15,1,400"
+            back:
+              summary: Trigger the Back button rule event
+              value: "event,back#pressed=1"
+            ok:
+              summary: Trigger the OK button rule event
+              value: "event,ok#pressed=1"
+      responses:
+        "200":
+          description: ESP Easy handled the command; any response body is firmware-dependent.
+  /json:
+    get:
+      operationId: getControllerState
+      summary: Read controller and NAS state
+      description: |
+        Returns the ESP Easy JSON status document. Find the sensor with
+        `TaskName` equal to `power`; its first `TaskValues` entry contains the
+        NAS power state (`1` means on, `0` means off).
+      responses:
+        "200":
+          description: Controller status, including sensor task values.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControllerStatus"
+              example:
+                Sensors:
+                  - TaskName: power
+                    TaskValues:
+                      - Name: nas-power
+                        Value: 1
+                        ValueNumber: 1
+        "500":
+          description: The controller could not provide its status.
+components:
+  schemas:
+    ControllerStatus:
+      type: object
+      description: ESP Easy status document; other fields may vary by firmware.
+      properties:
+        Sensors:
+          type: array
+          items:
+            $ref: "#/components/schemas/SensorTask"
+      required:
+        - Sensors
+      additionalProperties: true
+    SensorTask:
+      type: object
+      properties:
+        TaskName:
+          type: string
+        TaskValues:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskValue"
+      required:
+        - TaskName
+        - TaskValues
+      additionalProperties: true
+    TaskValue:
+      type: object
+      properties:
+        Name:
+          type: string
+        Value:
+          oneOf:
+            - type: number
+            - type: string
+        ValueNumber:
+          type: integer
+      required:
+        - Value
+      additionalProperties: true
