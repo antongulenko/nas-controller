@@ -669,7 +669,11 @@
     }
 
     document.querySelectorAll("[data-action]").forEach((button) => {
-      button.addEventListener("click", () => runAction(button.dataset.action, button));
+      button.addEventListener("click", () => {
+        const action = button.dataset.action;
+        if (action === "power" && !window.confirm("Pressing the power button toggles the NAS on or off. Continue?")) return;
+        runAction(action, button);
+      });
     });
 
     refreshButton.addEventListener("click", () => {
